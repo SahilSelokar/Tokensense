@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="100" />
+  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="80" style="vertical-align: middle; margin-right: 10px;" />
+  <span style="font-size: 28px; font-weight: bold; vertical-align: middle;">Visual Vortex</span>
 </p>
 
 # TokenSense
