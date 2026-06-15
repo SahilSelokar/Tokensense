@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="100" />
+</p>
+
 # TokenSense
 ### by [Visual Vortex](https://visualvortexcreatives.dev)
 
