@@ -8,11 +8,7 @@
   "colors": {
     "primary": "#EA7252",
     "light": "#EA7252",
-    "dark": "#EA7252",
-    "anchors": {
-      "from": "#EA7252",
-      "to": "#C7576C"
-    }
+    "dark": "#EA7252"
   },
   "topbarCtaButton": {
     "name": "Get Started",
@@ -36,32 +32,32 @@
     {
       "group": "Observability",
       "pages": [
-        "overview",
-        "metadata",
-        "outputs"
+        "observability/overview",
+        "observability/metadata",
+        "observability/outputs"
       ]
     },
     {
       "group": "Smart Routing",
       "pages": [
-        "overview",
-        "rules",
-        "decisions"
+        "smart-routing/overview",
+        "smart-routing/rules",
+        "smart-routing/decisions"
       ]
     },
     {
       "group": "Providers",
       "pages": [
-        "openai",
-        "anthropic",
-        "groq"
+        "providers/openai",
+        "providers/anthropic",
+        "providers/groq"
       ]
     },
     {
       "group": "Privacy & Security",
       "pages": [
-        "data-policy",
-        "prompt-logging"
+        "privacy/data-policy",
+        "privacy/prompt-logging"
       ]
     }
   ],
