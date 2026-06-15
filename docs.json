@@ -1,0 +1,70 @@
+{
+  "name": "TokenSense",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "colors": {
+    "primary": "#EA7252",
+    "light": "#EA7252",
+    "dark": "#EA7252",
+    "anchors": {
+      "from": "#EA7252",
+      "to": "#C7576C"
+    }
+  },
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "http://visualvortexcreatives.dev/"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/SahilSelokar/tokensense"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "installation"
+      ]
+    },
+    {
+      "group": "Observability",
+      "pages": [
+        "overview",
+        "metadata",
+        "outputs"
+      ]
+    },
+    {
+      "group": "Smart Routing",
+      "pages": [
+        "overview",
+        "rules",
+        "decisions"
+      ]
+    },
+    {
+      "group": "Providers",
+      "pages": [
+        "openai",
+        "anthropic",
+        "groq"
+      ]
+    },
+    {
+      "group": "Privacy & Security",
+      "pages": [
+        "data-policy",
+        "prompt-logging"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/SahilSelokar/tokensense"
+  }
+}
