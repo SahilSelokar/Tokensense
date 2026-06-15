@@ -3,6 +3,19 @@ title: 'Introduction'
 description: 'Documentation for Introduction'
 ---
 
-# Introduction
+## Introduction
 
-Content coming soon.
+TokenSense is an open-source Python framework for LLM cost observability and smart model routing. It wraps your existing LLM clients with one line of code and captures metadata — tokens, cost, latency — after every call.
+
+**It is not:**
+- A proxy — your API keys and prompts never go through our servers
+- A SaaS platform — no account, no sign-up, nothing to install except the package
+- A dashboard — it outputs to wherever you point it
+
+**It is:**
+- A Python package that runs inside your process
+- A transparent wrapper around OpenAI, Anthropic, and Groq clients
+- A routing layer that is context-budget-aware, rule-based, and auditable
+- Private by default — prompts are never captured unless you explicitly opt in
+
+---

@@ -3,6 +3,34 @@ title: 'Quickstart'
 description: 'Documentation for Quickstart'
 ---
 
-# Quickstart
+## Quickstart
 
-Content coming soon.
+### Step 1 — Wrap your client
+
+```python
+from tokensense import observe
+import anthropic
+
+client = observe(anthropic.Anthropic())
+```
+
+### Step 2 — Use it exactly as before
+
+```python
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain async/await in Python"}]
+)
+print(response.content[0].text)
+```
+
+### Step 3 — See the output
+
+```
+→ ✓ model=claude-sonnet-4-6 | in=18 out=312 tokens | $0.0052 | 847ms
+```
+
+That's it. One import, one wrapper. Every call is now tracked. Your existing code doesn't change.
+
+---

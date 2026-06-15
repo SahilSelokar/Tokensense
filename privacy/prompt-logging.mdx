@@ -3,6 +3,14 @@ title: 'Prompt Logging'
 description: 'Documentation for Prompt Logging'
 ---
 
-# Prompt Logging
+### Opt-in content logging
 
-Content coming soon.
+```python
+client = observe(
+    anthropic.Anthropic(),
+    log_prompts=True,     # include prompt messages in events
+    log_responses=True,   # include response text in events
+)
+```
+
+Even when enabled, content goes to your configured output only — never to us.

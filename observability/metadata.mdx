@@ -3,6 +3,27 @@ title: 'Metadata'
 description: 'Documentation for Metadata'
 ---
 
-# Metadata
+### CallEvent
 
-Content coming soon.
+Every intercepted call produces a `CallEvent`:
+
+```python
+@dataclass
+class CallEvent:
+    ts: str             # ISO 8601 UTC timestamp
+    model: str          # model name from response
+    provider: str       # anthropic | openai | groq | unknown
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float     # estimated cost
+    latency_ms: int
+    user_id: str | None
+    session_id: str | None
+    tags: list[str] | None
+    routed_tier: str | None   # set by Router if routing was used
+    error: str | None         # set if the call raised an exception
+```
+
+Prompt content and response content are **never** included by default.
+
+---

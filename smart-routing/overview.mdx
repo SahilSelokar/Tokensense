@@ -3,6 +3,80 @@ title: 'Overview'
 description: 'Documentation for Overview'
 ---
 
-# Overview
+## Router
 
-Content coming soon.
+The routing layer. Selects the right model for each call based on rules, context budget, and cost constraints. Runs entirely in-process.
+
+### Why routing matters
+
+Naive routing — "short prompt = cheap model" — silently breaks things:
+- A 150k token conversation sent to a model with an 8k context window gets truncated without warning
+- Switching from Sonnet to Haiku for a complex multi-constraint prompt causes capability regression
+- There is no way to know routing failed until a user reports a wrong answer
+
+TokenSense's router checks the context budget before routing and escalates automatically on failure.
+
+### Basic setup
+
+```python
+from tokensense.router import Router, Rule
+
+router = Router(
+    tiers={
+        "small":  ["claude-haiku-4-5"],
+        "large":  ["claude-sonnet-4-6"],
+    },
+    rules=[
+        Rule(if_context_tokens_gt=4000, deny_tiers=["small"]),
+        Rule(if_task="legal-review", pin_tier="large"),
+    ],
+    on_failure="escalate",
+)
+```
+
+### Getting a routing decision
+
+```python
+messages = [{"role": "user", "content": "Summarise this contract..."}]
+
+decision = router.route(
+    messages=messages,
+    task_hint="legal-review",
+)
+
+print(decision.model)   # claude-sonnet-4-6
+print(decision.tier)    # large
+print(decision.reason)  # pinned to large by rule
+```
+
+### Making the call with the routed model
+
+```python
+client = observe(anthropic.Anthropic())
+
+decision = router.route(messages=messages, task_hint="summarise")
+
+response = client.messages.create(
+    model=decision.model,
+    max_tokens=1024,
+    messages=messages,
+)
+```
+
+---
+
+### Tiers
+
+A tier is a named group of models. Models within a tier are tried in order — the first one whose context window fits the conversation is selected.
+
+```python
+tiers={
+    "small":  ["claude-haiku-4-5", "groq/llama3-8b"],  # tried left to right
+    "medium": ["gpt-4o-mini"],
+    "large":  ["claude-sonnet-4-6", "gpt-4o"],
+}
+```
+
+**Tier order matters.** The router tries tiers from first to last in the dict. Earlier tiers are preferred unless rules say otherwise.
+
+---

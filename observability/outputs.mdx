@@ -3,6 +3,218 @@ title: 'Outputs'
 description: 'Documentation for Outputs'
 ---
 
-# Outputs
+## Outputs
 
-Content coming soon.
+Outputs define where captured events are sent. Pass any output class to `observe()` via the `output` parameter.
+
+### Stdout
+
+Prints a one-line summary to the terminal after every call.
+
+```python
+from tokensense.outputs import Stdout
+
+client = observe(anthropic.Anthropic(), output=Stdout())
+```
+
+**Output format:**
+```
+→ ✓ model=claude-sonnet-4-6 | in=1204 out=387 tokens | $0.0061 | 934ms
+→ ✗ model=gpt-4o-mini | in=44 out=0 tokens | $0.0000 | 203ms | error=rate limit exceeded
+```
+
+| | |
+|---|---|
+| Best for | Development, debugging |
+| Infra required | None |
+| Production safe | No |
+
+---
+
+### SQLite
+
+Persists every event to a local SQLite `.db` file. File is created automatically if it doesn't exist.
+
+```python
+from tokensense.outputs import SQLite
+
+client = observe(anthropic.Anthropic(), output=SQLite("./usage.db"))
+client = observe(anthropic.Anthropic(), output=SQLite("/var/data/tokensense.db"))
+```
+
+**Query your data:**
+```sql
+-- total spend by model
+SELECT model, COUNT(*) as calls, SUM(cost_usd) as total_cost
+FROM calls
+GROUP BY model
+ORDER BY total_cost DESC;
+
+-- calls in the last 24 hours
+SELECT * FROM calls
+WHERE ts > datetime('now', '-1 day')
+ORDER BY ts DESC;
+
+-- most expensive sessions
+SELECT session_id, SUM(cost_usd) as total
+FROM calls
+GROUP BY session_id
+ORDER BY total DESC
+LIMIT 10;
+```
+
+**Schema:**
+```sql
+CREATE TABLE calls (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts            TEXT NOT NULL,
+    model         TEXT NOT NULL,
+    provider      TEXT,
+    input_tokens  INTEGER,
+    output_tokens INTEGER,
+    cost_usd      REAL,
+    latency_ms    INTEGER,
+    user_id       TEXT,
+    session_id    TEXT,
+    tags          TEXT,
+    routed_tier   TEXT,
+    error         TEXT
+);
+```
+
+| | |
+|---|---|
+| Best for | Local dev, single-process staging |
+| Infra required | None |
+| Production safe | Single worker only |
+| Multi-worker | Not recommended — use Logger or HTTP |
+
+---
+
+### Logger
+
+Writes structured JSON to Python's standard `logging` module. In production this automatically routes to CloudWatch, Datadog, GCP Logging, Grafana Loki, or whatever log aggregator is already configured. Zero new infra.
+
+```python
+from tokensense.outputs import Logger
+
+# default logger name: "tokensense"
+client = observe(anthropic.Anthropic(), output=Logger())
+
+# custom logger name
+client = observe(anthropic.Anthropic(), output=Logger("myapp.llm"))
+```
+
+**Output format (one line per call):**
+```json
+{"ts": "2026-06-14T10:23:11Z", "model": "claude-sonnet-4-6", "provider": "anthropic", "input_tokens": 1204, "output_tokens": 387, "cost_usd": 0.0061, "latency_ms": 934, "user_id": "user_123", "session_id": null, "tags": ["production"], "routed_tier": null, "error": null}
+```
+
+**Works with your existing log setup:**
+```python
+import logging
+
+# configure once in your app startup — tokensense uses it automatically
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[logging.StreamHandler()]
+)
+
+client = observe(anthropic.Anthropic(), output=Logger())
+```
+
+| | |
+|---|---|
+| Best for | Production |
+| Infra required | None — uses existing log infra |
+| Production safe | Yes — multi-worker safe |
+| Works with | CloudWatch, Datadog, GCP, Loki, ELK, any log aggregator |
+
+---
+
+### HTTP
+
+POSTs every event as JSON to any HTTP endpoint you control.
+
+```python
+from tokensense.outputs import HTTP
+
+client = observe(
+    anthropic.Anthropic(),
+    output=HTTP("https://your-server.com/ingest")
+)
+
+# with custom headers
+client = observe(
+    anthropic.Anthropic(),
+    output=HTTP(
+        "https://your-server.com/ingest",
+        headers={"Authorization": "Bearer your-token"}
+    )
+)
+```
+
+**Request format:**
+```
+POST https://your-server.com/ingest
+Content-Type: application/json
+
+{"ts": "...", "model": "...", "input_tokens": 1204, ...}
+```
+
+**Important:** HTTP output fires in a background thread and times out after 5 seconds. A failed POST is silently dropped — it never crashes your app or blocks your LLM call.
+
+| | |
+|---|---|
+| Best for | Self-hosted dashboards, custom ingestion |
+| Infra required | Your own endpoint |
+| Production safe | Yes |
+| Failure behaviour | Silent drop — never affects your app |
+
+---
+
+### Multi
+
+Writes to multiple outputs at once.
+
+```python
+from tokensense.outputs import Multi, Stdout, SQLite, Logger
+
+# see it in terminal AND save it locally
+client = observe(
+    anthropic.Anthropic(),
+    output=Multi(Stdout(), SQLite("./usage.db"))
+)
+
+# production: log infra + your own endpoint
+client = observe(
+    anthropic.Anthropic(),
+    output=Multi(Logger(), HTTP("https://your-server.com/ingest"))
+)
+```
+
+If one output fails, the others continue. Failures are silently swallowed per output.
+
+---
+
+### Auto Detection
+
+When no output is specified, TokenSense reads the environment and picks a sensible default:
+
+```python
+client = observe(anthropic.Anthropic())  # no output= argument
+```
+
+| `ENV` value | Output |
+|---|---|
+| `production` | `Logger("tokensense")` |
+| `staging` | `Multi(Stdout(), SQLite())` |
+| `development` | `Multi(Stdout(), SQLite())` |
+| not set | `Multi(Stdout(), SQLite())` |
+
+Reads from: `ENV`, `ENVIRONMENT`, `APP_ENV` — whichever is set first.
+
+Override at any time by passing `output=` explicitly.
+
+---

@@ -3,6 +3,107 @@ title: 'Decisions'
 description: 'Documentation for Decisions'
 ---
 
-# Decisions
+### Context Budget
 
-Content coming soon.
+Before selecting a model, the router checks whether the conversation fits in the model's context window. Models that can't fit the conversation are automatically excluded.
+
+```python
+# llama3-8b has 8,192 token context
+# claude-sonnet-4-6 has 200,000 token context
+
+router = Router(tiers={
+    "small": ["llama3-8b-8192"],
+    "large": ["claude-sonnet-4-6"],
+})
+
+# a 10,000 token conversation
+decision = router.route(messages=long_history)
+# → small is excluded (10k > 8k context)
+# → routed to large automatically
+# → reason: "selected large — small excluded by context budget"
+```
+
+TokenSense applies a 10% safety margin — a model with a 100k context window is only used for conversations up to 90k tokens.
+
+If `context_tokens` is not provided, TokenSense estimates it from message content using a 4-chars-per-token approximation. Pass the exact count if you have it:
+
+```python
+decision = router.route(messages=messages, context_tokens=8432)
+```
+
+---
+
+### Per-Call Overrides
+
+Override routing behaviour on a per-call basis.
+
+```python
+decision = router.route(
+    messages=msgs,
+    task_hint="code-review",   # matches if_task rules
+    max_cost_usd=0.005,        # hard cost cap — tiers exceeding this are excluded
+    min_tier="medium",         # floor — never route below this tier
+    context_tokens=1842,       # skip estimation, use exact count
+)
+```
+
+| Override | Type | Description |
+|---|---|---|
+| `task_hint` | string | Label passed to `if_task` rule conditions |
+| `max_cost_usd` | float | Hard cost ceiling — expensive tiers excluded |
+| `min_tier` | string | Minimum tier — never route below this |
+| `context_tokens` | int | Exact token count — skips estimation |
+
+---
+
+### Routing Decision
+
+`router.route()` always returns a `RoutingDecision` object.
+
+```python
+decision = router.route(messages=msgs)
+
+decision.model              # "claude-haiku-4-5" — the selected model
+decision.tier               # "small" — the selected tier
+decision.reason             # "default tier small" — human-readable reason
+decision.estimated_cost_usd # 0.000034 — pre-call cost estimate
+decision.denied_tiers       # ["large"] — tiers that were excluded
+```
+
+Every routing decision is also included in the `CallEvent` as `routed_tier`, so your output captures which tier was used for each call.
+
+---
+
+### on_failure
+
+Controls what happens when a model call fails.
+
+```python
+Router(on_failure="escalate")
+# → if the selected model fails, try the next tier up automatically
+# → if all tiers fail, raise the last exception
+
+Router(on_failure="error")
+# → surface the error immediately, no retry
+# → useful when you want explicit control over fallback logic
+```
+
+---
+
+### Routing Decision
+
+`router.route()` always returns a `RoutingDecision` object.
+
+```python
+decision = router.route(messages=msgs)
+
+decision.model              # "claude-haiku-4-5" — the selected model
+decision.tier               # "small" — the selected tier
+decision.reason             # "default tier small" — human-readable reason
+decision.estimated_cost_usd # 0.000034 — pre-call cost estimate
+decision.denied_tiers       # ["large"] — tiers that were excluded
+```
+
+Every routing decision is also included in the `CallEvent` as `routed_tier`, so your output captures which tier was used for each call.
+
+---

@@ -3,6 +3,20 @@ title: 'Installation'
 description: 'Documentation for Installation'
 ---
 
-# Installation
+## Installation
 
-Content coming soon.
+```bash
+pip install tokensense
+```
+
+**Requirements:** Python 3.10+
+
+TokenSense has zero required dependencies. The core package uses only Python's standard library — `sqlite3`, `logging`, `threading`, `urllib`.
+
+**Optional — for development and testing:**
+```bash
+pip install tokensense[dev]
+# includes: pytest, pytest-asyncio, anthropic, openai, groq
+```
+
+---

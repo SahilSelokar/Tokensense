@@ -3,6 +3,113 @@ title: 'Overview'
 description: 'Documentation for Overview'
 ---
 
-# Overview
+## Core Concepts
 
-Content coming soon.
+### How TokenSense intercepts calls
+
+TokenSense wraps your LLM client using Python's `__getattr__` proxy pattern. When you call `client.messages.create(...)`, TokenSense:
+
+1. Forwards the call to the original client — unchanged
+2. Waits for the response
+3. Extracts metadata from the response (tokens, model, cost)
+4. Emits a `CallEvent` to a background thread
+5. Returns the original response to your code
+
+Your code receives the exact same response object as before. The background thread handles the event asynchronously — your call latency is not affected.
+
+## observe()
+
+The core function. Wraps any supported LLM client and returns a drop-in replacement.
+
+### Signature
+
+```python
+def observe(
+    client: Any,
+    output: BaseOutput | None = None,
+    user_id: str | None = None,
+    session_id: str | None = None,
+    tags: list[str] | None = None,
+    log_prompts: bool = False,
+    log_responses: bool = False,
+    on_event: Callable[[CallEvent], None] | None = None,
+) -> ObservedClient
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `client` | Any | required | LLM client to wrap |
+| `output` | BaseOutput | auto | Where events are sent. Auto-detects by ENV if not set |
+| `user_id` | string | None | Identifier attached to every event from this client |
+| `session_id` | string | None | Groups multiple calls into a session |
+| `tags` | list[str] | None | Labels for filtering and segmentation |
+| `log_prompts` | bool | False | Include prompt content in events (opt-in) |
+| `log_responses` | bool | False | Include response content in events (opt-in) |
+| `on_event` | callable | None | Function called after each event is written |
+
+### Examples
+
+**Minimal — just observe:**
+```python
+from tokensense import observe
+client = observe(anthropic.Anthropic())
+```
+
+**With output:**
+```python
+from tokensense import observe
+from tokensense.outputs import SQLite
+
+client = observe(anthropic.Anthropic(), output=SQLite("./usage.db"))
+```
+
+**With user context:**
+```python
+client = observe(
+    anthropic.Anthropic(),
+    user_id="user_123",
+    session_id="chat_session_456",
+    tags=["production", "chat-feature"],
+)
+```
+
+**Wrapping OpenAI:**
+```python
+import openai
+client = observe(openai.OpenAI())
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+```
+
+**Wrapping Groq:**
+```python
+import groq
+client = observe(groq.Groq())
+response = client.chat.completions.create(
+    model="llama3-8b-8192",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+```
+
+**Async client:**
+```python
+import anthropic
+client = observe(anthropic.AsyncAnthropic())
+response = await client.messages.create(...)
+```
+
+**With explicit prompt logging:**
+```python
+# only do this when you specifically need prompt content in your logs
+client = observe(
+    anthropic.Anthropic(),
+    log_prompts=True,
+    log_responses=True,
+)
+```
+
+---
