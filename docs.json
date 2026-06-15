@@ -1,5 +1,6 @@
 {
   "name": "TokenSense",
+  "theme": "mint",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
