@@ -104,29 +104,29 @@ client = observe(
 ### Smart routing
 
 ```python
-from tokensense.router import Router
+from tokensense import Router, Rule
 
 router = Router(
     tiers={
-        "small":  ["groq/llama3-8b", "claude-haiku-4-5"],
+        "small":  ["llama-3.1-8b-instant", "claude-haiku-4-5"],
         "large":  ["claude-sonnet-4-6", "gpt-4o"],
     },
     rules=[
         # never route to small model if history is long
-        {"if_context_tokens_gt": 4000, "deny_tiers": ["small"]},
+        Rule(if_context_tokens_gt=4000, deny_tiers=["small"]),
 
         # pin sensitive tasks to large model always
-        {"if_task": "legal-review", "pin_tier": "large"},
-    ],
-    on_failure="escalate",  # if small model fails, try large automatically
+        Rule(if_task="legal-review", pin_tier="large"),
+    ]
 )
 
-response = router.create(
-    messages=msgs,
-    task_hint="code-review",
-    max_cost_usd=0.01,
+decision = router.route(
+    messages=[{"role": "user", "content": "Review this contract"}],
+    task_hint="legal-review"
 )
-# → routed to: groq/llama3-8b | reason: cost | fallback: claude-sonnet-4-6
+
+print(decision.model) # → 'claude-sonnet-4-6'
+print(decision.reason) # → 'pinned to large by rule'
 ```
 
 ---
@@ -202,7 +202,7 @@ Read [PRIVACY.md](PRIVACY.md) for exactly what is and isn't captured.
 - [x] `observe()` wrapper — OpenAI, Anthropic, Groq
 - [x] `Stdout`, `SQLite`, `Logger`, `HTTP` outputs
 - [x] Auto environment detection (dev vs prod)
-- [ ] `Router` with context budget check
+- [x] `Router` with context budget check
 - [ ] Shadow testing before switching tiers
 - [ ] `tokensense report` CLI — spend summary in terminal
 - [ ] Google Gemini support
@@ -216,8 +216,8 @@ Read [PRIVACY.md](PRIVACY.md) for exactly what is and isn't captured.
 TokenSense is MIT licensed and built in public. Issues, PRs, and feedback are welcome.
 
 ```bash
-git clone https://github.com/visualvortex/tokensense
-cd tokensense
+git clone https://github.com/SahilSelokar/Tokensense
+cd Tokensense
 pip install -e ".[dev]"
 pytest
 ```
