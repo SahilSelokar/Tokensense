@@ -20,47 +20,54 @@
       "url": "https://github.com/SahilSelokar/tokensense"
     }
   ],
-  "navigation": [
-    {
-      "group": "Get Started",
-      "pages": [
-        "introduction",
-        "quickstart",
-        "installation"
-      ]
-    },
-    {
-      "group": "Observability",
-      "pages": [
-        "observability/overview",
-        "observability/metadata",
-        "observability/outputs"
-      ]
-    },
-    {
-      "group": "Smart Routing",
-      "pages": [
-        "smart-routing/overview",
-        "smart-routing/rules",
-        "smart-routing/decisions"
-      ]
-    },
-    {
-      "group": "Providers",
-      "pages": [
-        "providers/openai",
-        "providers/anthropic",
-        "providers/groq"
-      ]
-    },
-    {
-      "group": "Privacy & Security",
-      "pages": [
-        "privacy/data-policy",
-        "privacy/prompt-logging"
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Observability",
+            "pages": [
+              "observability/overview",
+              "observability/metadata",
+              "observability/outputs"
+            ]
+          },
+          {
+            "group": "Smart Routing",
+            "pages": [
+              "smart-routing/overview",
+              "smart-routing/rules",
+              "smart-routing/decisions"
+            ]
+          },
+          {
+            "group": "Providers",
+            "pages": [
+              "providers/openai",
+              "providers/anthropic",
+              "providers/groq"
+            ]
+          },
+          {
+            "group": "Privacy & Security",
+            "pages": [
+              "privacy/data-policy",
+              "privacy/prompt-logging"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "github": "https://github.com/SahilSelokar/tokensense"
   }
