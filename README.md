@@ -1,7 +1,7 @@
-<p align="center">
-  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="80" style="vertical-align: middle; margin-right: 10px;" />
-  <span style="font-size: 28px; font-weight: bold; vertical-align: middle;">Visual Vortex</span>
-</p>
+<h1 align="center">
+  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="60" align="absmiddle" />
+  <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.2em;">Visual Vortex</span>
+</h1>
 
 # TokenSense
 ### by [Visual Vortex](https://visualvortexcreatives.dev)
