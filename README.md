@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/tokensense-ai.svg)](https://pypi.org/project/tokensense-ai/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![Discord](https://img.shields.io/discord/your-server-id?label=Discord)](https://discord.gg/your-invite)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/tokensense-ai.svg)](https://pypi.org/project/tokensense-ai/)
 
 ---
 
