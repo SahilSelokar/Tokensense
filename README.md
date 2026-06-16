@@ -209,12 +209,13 @@ Read [PRIVACY.md](PRIVACY.md) for exactly what is and isn't captured.
 - [x] Auto environment detection (dev vs prod)
 - [x] `Router` with context budget check
 - [ ] Shadow testing before switching tiers
-- [ ] `tokensense report` CLI — spend summary in terminal
-- [ ] **OpenTelemetry (OTEL) Export** — native integration with Datadog/Grafana
-- [ ] **Local Semantic Caching** — via SQLite vector extension to save cost/latency
-- [ ] **LiteLLM Integration** — native support for observing `litellm.completion()`
-- [ ] Google Gemini support
-- [ ] LangChain & LlamaIndex integration
+- [x] `tokensense report` CLI — spend summary in terminal
+- [x] **OpenTelemetry (OTEL) Export** — native integration with Datadog/Grafana
+- [x] **Local Semantic Caching** — via SQLite vector extension to save cost/latency
+- [x] **LiteLLM Integration** — native support for observing `litellm.completion()`
+- [x] Google Gemini support
+- [x] LangChain integration
+- [x] LlamaIndex integration
 
 ---
 

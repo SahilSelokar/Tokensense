@@ -1,61 +1,56 @@
 from typing import Tuple, Optional
 
-# (input_per_1M, output_per_1M)
-MODEL_COSTS: dict[str, tuple[float, float]] = {
-    # Anthropic
-    "claude-opus-4-8": (15.00, 75.00),
-    "claude-opus-4-7": (15.00, 75.00),
-    "claude-opus-4-6": (15.00, 75.00),
-    "claude-sonnet-4-6": (3.00, 15.00),
-    "claude-haiku-4-5": (0.80, 4.00),
-    # OpenAI
-    "gpt-4o": (5.00, 15.00),
-    "gpt-4o-mini": (0.15, 0.60),
-    "gpt-4-turbo": (10.00, 30.00),
-    "gpt-3.5-turbo": (0.50, 1.50),
-    "o1": (15.00, 60.00),
-    "o1-mini": (3.00, 12.00),
-    "o3-mini": (1.10, 4.40),
-    # Groq / Llama
-    "llama3-8b-8192": (0.05, 0.10),
-    "llama3-70b-8192": (0.59, 0.79),
-    "llama-3.1-8b-instant": (0.05, 0.08),
-    "llama-3.3-70b-versatile": (0.59, 0.79),
-    "mixtral-8x7b-32768": (0.24, 0.24),
-    "gemma2-9b-it": (0.20, 0.20),
-    # Google
-    "gemini-1.5-pro": (3.50, 10.50),
-    "gemini-1.5-flash": (0.075, 0.30),
-    "gemini-2.0-flash": (0.10, 0.40),
-}
+import json
+import os
+from typing import Tuple, Optional, Dict
 
-CONTEXT_WINDOWS: dict[str, int] = {
-    # Anthropic
-    "claude-opus-4-8": 200_000,
-    "claude-opus-4-7": 200_000,
-    "claude-opus-4-6": 200_000,
-    "claude-sonnet-4-6": 200_000,
-    "claude-haiku-4-5": 200_000,
-    # OpenAI
-    "gpt-4o": 128_000,
-    "gpt-4o-mini": 128_000,
-    "gpt-4-turbo": 128_000,
-    "gpt-3.5-turbo": 16_385,
-    "o1": 200_000,
-    "o1-mini": 128_000,
-    "o3-mini": 200_000,
-    # Groq / Llama
-    "llama3-8b-8192": 8_192,
-    "llama3-70b-8192": 8_192,
-    "llama-3.1-8b-instant": 131_072,
-    "llama-3.3-70b-versatile": 131_072,
-    "mixtral-8x7b-32768": 32_768,
-    "gemma2-9b-it": 8_192,
-    # Google
-    "gemini-1.5-pro": 2_097_152,
-    "gemini-1.5-flash": 1_048_576,
-    "gemini-2.0-flash": 1_048_576,
-}
+MODEL_COSTS: Dict[str, Tuple[float, float]] = {}
+CONTEXT_WINDOWS: Dict[str, int] = {}
+
+def _load_litellm_prices():
+    global MODEL_COSTS, CONTEXT_WINDOWS
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(current_dir, "model_prices.json")
+    
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r") as f:
+                data = json.load(f)
+                
+            for model_name, info in data.items():
+                if model_name == "sample_spec":
+                    continue
+                
+                # LiteLLM provides cost per token. Our dict uses cost per million.
+                in_cost = info.get("input_cost_per_token", 0.0) * 1_000_000
+                out_cost = info.get("output_cost_per_token", 0.0) * 1_000_000
+                MODEL_COSTS[model_name] = (in_cost, out_cost)
+                
+                context_window = info.get("max_input_tokens") or info.get("max_tokens")
+                if context_window:
+                    CONTEXT_WINDOWS[model_name] = int(context_window)
+                    
+            # Manual Fallbacks for brand new models that LiteLLM might not have yet
+            if "gemini-2.5-flash" not in MODEL_COSTS:
+                MODEL_COSTS["gemini-2.5-flash"] = (0.15, 1.25)
+                CONTEXT_WINDOWS["gemini-2.5-flash"] = 1_048_576
+            if "gemini-2.5-pro" not in MODEL_COSTS:
+                MODEL_COSTS["gemini-2.5-pro"] = (0.625, 5.00)
+                CONTEXT_WINDOWS["gemini-2.5-pro"] = 2_097_152
+            if "gemini-3.1-flash-lite" not in MODEL_COSTS:
+                MODEL_COSTS["gemini-3.1-flash-lite"] = (0.125, 0.75)
+                CONTEXT_WINDOWS["gemini-3.1-flash-lite"] = 1_048_576
+            if "gemini-3.1-pro-preview" not in MODEL_COSTS:
+                MODEL_COSTS["gemini-3.1-pro-preview"] = (1.00, 6.00)
+                CONTEXT_WINDOWS["gemini-3.1-pro-preview"] = 2_097_152
+            if "gemini-3.5-flash" not in MODEL_COSTS:
+                MODEL_COSTS["gemini-3.5-flash"] = (0.75, 4.50)
+                CONTEXT_WINDOWS["gemini-3.5-flash"] = 1_048_576
+                
+        except Exception as e:
+            print(f"Warning: Failed to load TokenSense model prices: {e}")
+
+_load_litellm_prices()
 
 def _fuzzy_match_model(model_name: str, target_dict: dict) -> Optional[str]:
     # Exact match first

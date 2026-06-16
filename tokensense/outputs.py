@@ -132,3 +132,73 @@ class Multi(BaseOutput):
                 output.write(event)
             except Exception:
                 pass
+
+class OTEL(BaseOutput):
+    """
+    OpenTelemetry Export for TokenSense.
+    Requires `pip install tokensense-ai[otel]`
+    """
+    def __init__(self, service_name: str = "tokensense"):
+        try:
+            from opentelemetry import trace, metrics
+        except ImportError:
+            raise ImportError(
+                "OpenTelemetry packages not found. "
+                "Please install with: pip install 'tokensense-ai[otel]'"
+            )
+        
+        self.tracer = trace.get_tracer(service_name)
+        self.meter = metrics.get_meter(service_name)
+        
+        # Metrics
+        self.cost_counter = self.meter.create_counter(
+            "llm.cost.usd",
+            description="Total estimated cost of LLM calls in USD",
+            unit="USD"
+        )
+        self.latency_histogram = self.meter.create_histogram(
+            "llm.latency.ms",
+            description="LLM API call latency",
+            unit="ms"
+        )
+        self.token_counter = self.meter.create_counter(
+            "llm.tokens",
+            description="Total LLM tokens processed",
+            unit="tokens"
+        )
+
+    def write(self, event: CallEvent) -> None:
+        from opentelemetry.trace import Status, StatusCode
+        
+        attributes = {
+            "llm.model": event.model,
+            "llm.provider": event.provider,
+            "llm.routed_tier": event.routed_tier or "default",
+        }
+        
+        if event.user_id:
+            attributes["user.id"] = event.user_id
+        if event.session_id:
+            attributes["session.id"] = event.session_id
+            
+        # Update Metrics
+        self.cost_counter.add(event.cost_usd, attributes)
+        self.latency_histogram.record(event.latency_ms, attributes)
+        self.token_counter.add(event.input_tokens + event.output_tokens, attributes)
+        
+        # Create Span
+        with self.tracer.start_as_current_span(f"llm.completion.{event.provider}", attributes=attributes) as span:
+            span.set_attribute("llm.request.input_tokens", event.input_tokens)
+            span.set_attribute("llm.response.output_tokens", event.output_tokens)
+            span.set_attribute("llm.cost_usd", event.cost_usd)
+            
+            if event.error:
+                span.set_status(Status(StatusCode.ERROR, event.error))
+                span.record_exception(Exception(event.error))
+            else:
+                span.set_status(Status(StatusCode.OK))
+                
+            if event.prompt:
+                span.set_attribute("llm.prompt", event.prompt)
+            if event.response:
+                span.set_attribute("llm.response", event.response)

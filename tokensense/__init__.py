@@ -16,3 +16,15 @@ __all__ = [
     "estimate_cost",
     "get_context_window",
 ]
+
+try:
+    from tokensense.integrations.langchain import TokenSenseCallbackHandler
+    __all__.append("TokenSenseCallbackHandler")
+except ImportError:
+    pass
+
+try:
+    from tokensense.integrations.llamaindex import TokenSenseLlamaIndexCallback
+    __all__.append("TokenSenseLlamaIndexCallback")
+except ImportError:
+    pass
