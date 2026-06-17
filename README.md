@@ -190,7 +190,91 @@ client = observe(
 | Anthropic | ✅ | ✅ | ✅ |
 | OpenAI | ✅ | ✅ | ✅ |
 | Groq | ✅ | ✅ | ✅ |
-| Google Gemini | 🔜 | 🔜 | 🔜 |
+| Google Gemini | ✅ | ✅ | 🔜 |
+| LiteLLM | ✅ | ✅ | 🔜 |
+
+---
+
+## Integrations
+
+TokenSense has native integrations with LangChain and LlamaIndex via callback handlers. You do not need to use `observe()`, just pass the callback handler into your LLM configuration.
+
+### LangChain
+
+```python
+from tokensense import TokenSenseCallbackHandler
+from langchain_groq import ChatGroq
+
+llm = ChatGroq(model="llama-3.1-8b-instant")
+response = llm.invoke("Hello!", config={"callbacks": [TokenSenseCallbackHandler()]})
+```
+
+### LlamaIndex
+
+```python
+from tokensense import TokenSenseLlamaIndexCallback
+from llama_index.core.callbacks import CallbackManager
+from llama_index.core import Settings
+from llama_index.llms.groq import Groq
+
+Settings.callback_manager = CallbackManager([TokenSenseLlamaIndexCallback()])
+llm = Groq(model="llama-3.1-8b-instant")
+response = llm.complete("Hello!")
+```
+
+---
+
+## Semantic Caching
+
+Stop paying for identical prompts. TokenSense includes a local, `sqlite-vec` powered semantic cache that intercepts duplicate requests before they hit the LLM.
+
+```python
+from tokensense import observe
+from tokensense.cache import SQLiteVectorCache
+
+cache = SQLiteVectorCache("./tokensense.db")
+client = observe(openai.OpenAI(), cache=cache)
+
+# First call: hits OpenAI API and costs money
+client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "Explain async/await"}])
+
+# Second call: intercepted instantly, latency drops to ~1ms, cost $0.00
+client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "Explain async/await"}])
+```
+
+---
+
+## CLI Tools
+
+TokenSense comes with built-in CLI commands to manage your database and pricing.
+
+**View Total Spend:**
+```bash
+tokensense report
+```
+*Aggregates your SQLite database and prints total token usage and USD spent per model.*
+
+**Update Model Pricing:**
+```bash
+tokensense update-prices
+```
+*Downloads the latest live pricing database from the open-source LiteLLM project so you're always accurate, even for models released today.*
+
+---
+
+## OpenTelemetry (OTEL) Export
+
+Enterprise ready. Export your traces natively to Datadog, Grafana, or Jaeger.
+
+```python
+from tokensense import observe
+from tokensense.outputs import Multi, OTEL
+
+client = observe(
+    anthropic.Anthropic(),
+    output=Multi(SQLite("./usage.db"), OTEL(service_name="my-app"))
+)
+```
 
 ---
 
