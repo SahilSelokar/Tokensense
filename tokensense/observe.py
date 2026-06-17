@@ -313,6 +313,13 @@ class ObjectProxy:
         self._meta_kwargs = meta_kwargs
         self._cache = meta_kwargs.pop("cache", None)
 
+    # Known SDK namespace attributes that need recursive proxying
+    _PROXY_NAMESPACES = frozenset({
+        "chat", "completions", "messages", "models", "embeddings",
+        "images", "audio", "files", "fine_tuning", "beta",
+        "generative_model", "generate_content",
+    })
+
     def __getattr__(self, name: str) -> Any:
         attr = getattr(self._obj, name)
         
@@ -329,7 +336,8 @@ class ObjectProxy:
                     )
             return attr
         
-        if hasattr(attr, "__dict__") or isinstance(attr, object):
+        # Only proxy known SDK namespace objects, return everything else as-is
+        if name in self._PROXY_NAMESPACES:
             return ObjectProxy(
                 attr, self._output, self._log_prompts, self._log_responses, self._on_event, {**self._meta_kwargs, "cache": self._cache}
             )

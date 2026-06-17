@@ -9,8 +9,11 @@ CONTEXT_WINDOWS: Dict[str, int] = {}
 
 def _load_litellm_prices():
     global MODEL_COSTS, CONTEXT_WINDOWS
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(current_dir, "model_prices.json")
+    
+    # Check user cache first (written by `tokensense update-prices`), then bundled copy
+    user_cache = os.path.join(os.path.expanduser("~"), ".tokensense", "model_prices.json")
+    bundled = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model_prices.json")
+    json_path = user_cache if os.path.exists(user_cache) else bundled
     
     if os.path.exists(json_path):
         try:

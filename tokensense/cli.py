@@ -49,8 +49,9 @@ def main():
             print(f"Downloading latest pricing from {url}...")
             
             try:
-                import tokensense
-                target_path = os.path.join(os.path.dirname(tokensense.__file__), "model_prices.json")
+                cache_dir = os.path.join(os.path.expanduser("~"), ".tokensense")
+                os.makedirs(cache_dir, exist_ok=True)
+                target_path = os.path.join(cache_dir, "model_prices.json")
                 
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req) as response:

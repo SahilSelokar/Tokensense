@@ -8,6 +8,7 @@ try:
 except ImportError:
     class BaseCallbackHandler:
         pass
+    LLMResult = Any
 
 from tokensense.cost import estimate_cost
 from tokensense.events import CallEvent
