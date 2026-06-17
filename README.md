@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/tokensense-ai.svg)](https://pypi.org/project/tokensense-ai/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/tokensense-ai.svg)](https://pypi.org/project/tokensense-ai/)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/tokensense-ai?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/tokensense-ai)
 
 ---
 
