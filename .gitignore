@@ -26,6 +26,15 @@ htmlcov/
 *.db
 *.sqlite3
 
+# Archives
+*.zip
+
 # IDEs
 .vscode/
 .idea/
+
+# Stray docs / scratch files
+introduction.mdx
+featureList.md
+webDocs.md
+google.md
