@@ -136,6 +136,38 @@ print(decision.reason) # → 'pinned to large by rule'
 
 ---
 
+## ShadowTest
+
+Stop guessing if a cheaper model will ruin your app. ShadowTest runs your real prompts against multiple models in parallel, scoring the results before you deploy.
+
+```python
+from tokensense import ShadowTest, observe
+
+test = ShadowTest(
+    clients={
+        "current": observe(anthropic.Anthropic()),
+        "candidate": observe(openai.OpenAI())
+    },
+    prompts=[
+        {
+            "messages": [{"role": "user", "content": "Return the user profile as JSON."}],
+            "model_current": "claude-3-5-sonnet",
+            "model_candidate": "gpt-4o-mini",
+            "expected_format": "json"
+        }
+    ],
+    scoring="format-check" # Also supports: exact-match, similarity, llm-judge
+)
+
+report = test.run()
+print(report.summary())
+# → Tier        Pass Rate    Avg Cost     Avg Latency 
+# → current     100%         $0.0030      800ms
+# → candidate   95%          $0.0001      300ms
+```
+
+---
+
 ## What gets logged
 
 By default, TokenSense logs only metadata — never your prompt content or response text.
@@ -190,8 +222,8 @@ client = observe(
 | Anthropic | ✅ | ✅ | ✅ |
 | OpenAI | ✅ | ✅ | ✅ |
 | Groq | ✅ | ✅ | ✅ |
-| Google Gemini | ✅ | ✅ | 🔜 |
-| LiteLLM | ✅ | ✅ | 🔜 |
+| Google Gemini | ✅ | ✅ | ✅ |
+| LiteLLM | ✅ | ✅ | ✅ |
 
 ---
 

@@ -10,7 +10,7 @@ CONTEXT_WINDOWS: Dict[str, int] = {}
 def _load_litellm_prices():
     global MODEL_COSTS, CONTEXT_WINDOWS
     
-    # Check user cache first (written by `tokensense update-prices`), then bundled copy
+    # Prefer user's cached prices, fall back to bundled copy
     user_cache = os.path.join(os.path.expanduser("~"), ".tokensense", "model_prices.json")
     bundled = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model_prices.json")
     json_path = user_cache if os.path.exists(user_cache) else bundled
@@ -24,7 +24,7 @@ def _load_litellm_prices():
                 if model_name == "sample_spec":
                     continue
                 
-                # LiteLLM provides cost per token. Our dict uses cost per million.
+                # LiteLLM stores cost-per-token, we store cost-per-million
                 in_cost = info.get("input_cost_per_token", 0.0) * 1_000_000
                 out_cost = info.get("output_cost_per_token", 0.0) * 1_000_000
                 MODEL_COSTS[model_name] = (in_cost, out_cost)
@@ -33,7 +33,7 @@ def _load_litellm_prices():
                 if context_window:
                     CONTEXT_WINDOWS[model_name] = int(context_window)
                     
-            # Manual Fallbacks for brand new models that LiteLLM might not have yet
+            # Hardcoded prices for models LiteLLM doesn't know about yet
             if "gemini-2.5-flash" not in MODEL_COSTS:
                 MODEL_COSTS["gemini-2.5-flash"] = (0.15, 1.25)
                 CONTEXT_WINDOWS["gemini-2.5-flash"] = 1_048_576
@@ -60,15 +60,14 @@ def _fuzzy_match_model(model_name: str, target_dict: dict) -> Optional[str]:
     if model_name in target_dict:
         return model_name
         
-    # Strip provider prefix if present (e.g. groq/llama3-8b-8192)
+    # Try stripping provider prefix (e.g. groq/llama3-8b-8192 -> llama3-8b-8192)
     clean_model = model_name
     if "/" in clean_model:
         clean_model = clean_model.split("/", 1)[1]
         if clean_model in target_dict:
             return clean_model
             
-    # Fuzzy substring match
-    # Match longest base model name that is a prefix
+    # Longest prefix match as last resort
     candidates = []
     for k in target_dict.keys():
         if clean_model.startswith(k):
@@ -80,23 +79,20 @@ def _fuzzy_match_model(model_name: str, target_dict: dict) -> Optional[str]:
     return None
 
 def estimate_cost(model_name: str, input_tokens: int, output_tokens: int) -> float:
-    """
-    Calculate the estimated USD cost of an LLM invocation.
-    """
+    """Estimate the USD cost of a call given model + token counts."""
     matched_key = _fuzzy_match_model(model_name, MODEL_COSTS)
     
     if matched_key:
         input_price, output_price = MODEL_COSTS[matched_key]
     else:
-        # Fallback to a standard/average pricing
+        # Unknown model — use a safe middle-ground price
         input_price, output_price = 0.15, 0.60
         
     input_cost = (input_tokens / 1_000_000.0) * input_price
     output_cost = (output_tokens / 1_000_000.0) * output_price
     return input_cost + output_cost
 
-# Aliasing calculate_cost to estimate_cost to prevent breaking internal modules
-# if they still reference calculate_cost. We will update them though.
+# Legacy alias — some internal modules still reference this
 calculate_cost = estimate_cost
 
 def get_context_window(model_name: str) -> Optional[int]:

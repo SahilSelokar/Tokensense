@@ -2,6 +2,7 @@ from tokensense.observe import observe
 from tokensense.router import Router, Rule, RoutingDecision
 from tokensense.outputs import Stdout, SQLite, Logger, HTTP, Multi
 from tokensense.cost import estimate_cost, get_context_window
+from tokensense.harness import ShadowTest, ShadowTestReport
 
 __all__ = [
     "observe",
@@ -15,6 +16,8 @@ __all__ = [
     "Multi",
     "estimate_cost",
     "get_context_window",
+    "ShadowTest",
+    "ShadowTestReport",
 ]
 
 try:
