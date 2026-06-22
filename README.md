@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://visualvortexcreatives.dev/_next/image?url=%2Fvisual-vortex-logo.png&w=96&q=75" alt="Visual Vortex Creatives Logo" width="60" align="absmiddle" />
+  <img src="https://raw.githubusercontent.com/SahilSelokar/Tokensense/main/icon.png" alt="Visual Vortex Creatives Logo" width="60" align="absmiddle" />
   <span style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.2em;">Visual Vortex</span>
 </h1>
 
