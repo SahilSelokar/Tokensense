@@ -24,6 +24,9 @@ htmlcov/
 
 # Local SQLite databases
 *.db
+*.db-journal
+*.db-shm
+*.db-wal
 *.sqlite3
 
 # Archives
