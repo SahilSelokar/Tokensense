@@ -2,6 +2,20 @@
 
 All notable changes to the TokenSense AI Framework will be documented in this file.
 
+## [0.2.3] - 2026-06-23
+
+### Added
+- **ShadowTest Harness**: Added a local evaluation harness that runs the same prompt against multiple models (current vs candidate) in parallel, scoring outputs for format, exact match, similarity, and LLM-judged quality.
+- **Automatic Provider Detection**: The `observe()` wrapper automatically detects the underlying client type (OpenAI, Anthropic, Groq, LiteLLM) and applies appropriate patching without requiring manual provider specification.
+- **OpenRouter Support**: Added native integration and pricing support for OpenRouter, enabling cost-aware routing to models on the OpenRouter platform.
+- **Automatic Stream Options**: The `observe()` wrapper automatically injects `stream_options={"include_usage": True}` for OpenAI/Groq to ensure exact usage tokens are captured from streaming responses.
+
+### Changed
+- **Cost Estimation Accuracy**: Improved cost estimation to use the latest models from the LiteLLM pricing database, with hardcoded fallbacks for newly released models (e.g., Gemini 2.5 Flash).
+- **Model Naming Normalization**: Implemented fuzzy matching and prefix stripping (e.g., `groq/llama-3-8b-8192` -> `llama-3-8b-8192`) to improve model name resolution against the pricing database.
+- **Cost & Token Functions**: Refactored `calculate_cost()` and `estimate_tokens()` to use the unified `_load_litellm_prices()` helper, ensuring consistent pricing data across the framework.
+- **Internal Module Aliases**: Added backward-compatible aliases for `calculate_cost` and `estimate_tokens` to prevent breaking internal imports while transitioning to the unified pricing system.
+
 ## [0.2.1] - 2026-06-17
 
 ### Added
