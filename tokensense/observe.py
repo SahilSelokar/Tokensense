@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 import threading
@@ -290,6 +291,10 @@ class ObservedAsyncMethodWrapper(ObservedMethodWrapper):
                 yield chunk
         except GeneratorExit:
             ctx.partial = True
+        except asyncio.CancelledError:
+            # FastAPI/Starlette cancels the task on client disconnect
+            ctx.partial = True
+            raise
         except Exception as e:
             ctx.error_msg = str(e)
             ctx.partial = True
